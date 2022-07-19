@@ -82,7 +82,6 @@
 //         .snapshots();
 //   }
 
-
 //   addMessage2(String chatRoomId, chatMessageData)async{
 
 //     await FirebaseFirestore.instance.collection("chatRoom")
@@ -120,7 +119,6 @@
 //   orderNotifier.orderList = _orderList;
 // }
 
-
 // uploadorderAndImage(order order, bool isUpdating, File localFile, Function orderUploaded) async {
 //   if (localFile != null) {
 //     print("uploading image");
@@ -148,22 +146,53 @@
 // }
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:trilicious_menu/models/order.dart';
+import 'package:trilicious_menu/notifiers/order_notifier.dart';
 
-_uploadOrder(Order order, Function orderUploaded) async {
-  CollectionReference orderRef = FirebaseFirestore.instance.collection('orders');
-    order.orderedAt = Timestamp.now();
+// _uploadOrder(Order order, Function orderUploaded) async {
+//   CollectionReference orderRef = FirebaseFirestore.instance.collection('orders');
+//     order.orderedAt = Timestamp.now();
 
-    DocumentReference documentRef = await orderRef.add(order.toMap());
+//     DocumentReference documentRef = await orderRef.add(order.toMap());
 
-    order.id = documentRef.id;
+//     order.id = documentRef.id;
 
-    print('uploaded order successfully: ${order.toString()}');
+//     print('uploaded order successfully: ${order.toString()}');
 
-    await documentRef.set(order.toMap());
+//     await documentRef.set(order.toMap());
 
-    orderUploaded(order);
+//     orderUploaded(order);
+// }
+
+uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier) async {
+  // OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context,listen:false);
+  print(orderNotifier.allOrderList);
+  int orderId = orderNotifier.allOrderList.length+1;
+  var orderDate = DateFormat('dd-M-y').format(DateTime.now());
+  CollectionReference orderRef =
+      FirebaseFirestore.instance.collection('date').doc(orderDate).collection('orders');
+  order.orderedAt = Timestamp.now();
+
+  // DocumentReference documentRef = await orderRef.add(order.toMap());
+
+  order.id = orderId.toString();
+  await orderRef.doc(orderId.toString()).set(order.toMap());
+
+  print('uploaded order successfully: ${order.toString()}');
+
+  
+
+  orderUploaded(order);
 }
+
+Stream<List<Order>> get allOrderList{
+    return FirebaseFirestore.instance
+        .collectionGroup('orders')
+        .snapshots()
+        .map((QuerySnapshot snapshot) =>
+            snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList());
+  }
 
 // deleteorder(order order, Function orderDeleted) async {
 //   if (order.image != null) {

@@ -1,7 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:trilicious_menu/notifiers/menu_item_notifier.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+// import 'package:trilicious_menu/models/food_item.dart';
+import 'package:trilicious_menu/models/order.dart';
+import 'package:trilicious_menu/notifiers/cart_notifier.dart';
+import 'package:trilicious_menu/notifiers/food_item_notifier.dart';
+// import 'package:trilicious_food/notifiers/order_notifier.dart';
+import 'package:trilicious_menu/api/order_api.dart';
 import 'package:trilicious_menu/notifiers/order_notifier.dart';
+import 'package:trilicious_menu/payment.dart';
+import 'package:trilicious_menu/widgets/glass_card.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -11,21 +20,95 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  late Razorpay _razorpay;
   @override
   void initState() {
-    MenuItemNotifier menuItemNotifier =
-        Provider.of<MenuItemNotifier>(context, listen: false);
+    super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleErrorFailure);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _razorpay.clear();
+  }
+
+  void openCheckout(CartNotifier cartNotifier, String OrderId) {
+    var options = {
+      'key': 'rzp_test_3CN6aDtmrAAsyR',
+      'amount': (cartNotifier.totalBill * 100)
+          .toString(), //in the smallest currency sub-unit.
+      'name': 'Pizza Central',
+      'order_id': OrderId,
+      // 'order_id': 'order_EMBFqjDHEEn80l', // Generate order_id using Orders API
+      'description': 'Demo',
+      'timeout': 300, // in seconds
+      'prefill': {'contact': '9365097092', 'email': 'vaibhavbhajanka@gmail.com'}
+    };
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  _onOrderUploaded(Order order) {
     OrderNotifier orderNotifier =
         Provider.of<OrderNotifier>(context, listen: false);
-    // getMenuItems(menuItemNotifier);
-    super.initState();
-    // print(orderNotifier.orderList);
+    CartNotifier cartNotifier =
+        Provider.of<CartNotifier>(context, listen: false);
+    orderNotifier.currentOrder = order;
+    // if (foodItem.updatedAt == null) {
+    //   foodItemNotifier.addfoodItem(foodItem);
+    // }
+    cartNotifier.emptyCart();
+    Navigator.pop(context);
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    print('Success Response: $response');
+    CartNotifier cartNotifier =
+        Provider.of<CartNotifier>(context, listen: false);
+    OrderNotifier orderNotifier =
+        Provider.of<OrderNotifier>(context, listen: false);
+    Order _currentOrder = Order(
+        bill: 0,
+        discount: 0,
+        totalBill: 0,
+        totalQuantity: 0,
+        items: [],
+        price: {},
+        quantity: {},
+        isCompleted: false);
+    _currentOrder.items = cartNotifier.itemList;
+    _currentOrder.quantity = cartNotifier.quantity;
+    _currentOrder.price = cartNotifier.price;
+    _currentOrder.bill = cartNotifier.bill;
+    _currentOrder.discount = cartNotifier.discount;
+    _currentOrder.totalBill = cartNotifier.totalBill;
+    _currentOrder.totalQuantity = cartNotifier.totalQuantity;
+    // print(_currentOrder);
+    uploadOrder(_currentOrder, _onOrderUploaded, orderNotifier);
+  }
+
+  void _handleErrorFailure(PaymentFailureResponse response) {
+    print('Error Response: $response');
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print('External SDK Response: $response');
   }
 
   @override
   Widget build(BuildContext context) {
-    MenuItemNotifier menuItemNotifier = Provider.of<MenuItemNotifier>(context);
+    FoodItemNotifier foodItemNotifier = Provider.of<FoodItemNotifier>(context);
     OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
+    CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
+
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -58,10 +141,41 @@ class _CartScreenState extends State<CartScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: size.height * 0.075),
-            const Image(
-              image: AssetImage('images/cover.png'),
-            ),
+            SizedBox(height: size.height * 0.04),
+            StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection("restaurants")
+                    .doc('abc@gmail.com')
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  return snapshot.hasData
+                      ? Stack(
+                          children: [
+                            AspectRatio(
+                              aspectRatio: 5 / 3,
+                              child: Image.network(
+                                snapshot.data?['coverImage'] ??
+                                    'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 80),
+                              child: Center(
+                                child: GlassCard(
+                                  image: snapshot.data?['profileImage'],
+                                  restaurantName: snapshot.data?['name'] ?? '',
+                                  restaurantAddress:
+                                      snapshot.data?['address'] ?? '',
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container();
+                  // Restaurant _restaurant = Restaurant.fromMap(snapshot);
+                  // profileNotifier.currentRestaurant = _restaurant;
+                }),
             SizedBox(height: size.height * 0.05),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -91,55 +205,33 @@ class _CartScreenState extends State<CartScreen> {
             ),
             ListView.builder(
               shrinkWrap: true,
-              // reverse: true,
-              // separatorBuilder: (BuildContext context, int index) {
-              //   return const SizedBox(
-              //     width: 0,
-              //     height: 0,
-              //   );
-              // },
-              itemCount: orderNotifier.currentOrder?.items?.length,
+              itemCount: cartNotifier.itemList.length,
               itemBuilder: (BuildContext context, int index) {
+                String foodItem = cartNotifier.itemList[index];
                 return CartItem(
-                  itemName:
-                      orderNotifier.currentOrder?.items?[index].itemName.toString() ?? '',
-                  price: int.parse(
-                      orderNotifier.currentOrder?.items?[index].price.toString() ?? '0'),
-                  quantity: ,
+                  itemName: foodItem,
+                  price: int.parse(cartNotifier.price[foodItem].toString()),
+                  quantity:
+                      int.parse(cartNotifier.quantity[foodItem].toString()),
                   onDecrement: () {
-                    menuItemNotifier.currentMenuItem =
-                        menuItemNotifier.menuItemList[index];
-                    setState(() {
-                      orderNotifier
-                          .decrementQuantity(menuItemNotifier.currentMenuItem);
-                    });
+                    foodItemNotifier.currentFoodItem = foodItemNotifier
+                        .findFoodItem(foodItem, foodItemNotifier);
+                    // setState(() {
+                    cartNotifier
+                        .decrementQuantity(foodItemNotifier.currentFoodItem);
+                    // });
                   },
                   onIncrement: () {
-                    menuItemNotifier.currentMenuItem =
-                        menuItemNotifier.menuItemList[index];
-                    setState(() {
-                      orderNotifier
-                          .incrementQuantity(menuItemNotifier.currentMenuItem);
-                    });
+                    foodItemNotifier.currentFoodItem = foodItemNotifier
+                        .findFoodItem(foodItem, foodItemNotifier);
+                    // setState(() {
+                    cartNotifier
+                        .incrementQuantity(foodItemNotifier.currentFoodItem);
+                    // });
                   },
                 );
               },
             ),
-            // CartItem(
-            //       itemName:
-            //           orderNotifier.orderList[0]?.itemName.toString()??'',
-            //       price: int.parse(orderNotifier.orderList[0]?.price.toString()??'0'),
-            //       quantity: int.parse(orderNotifier.quantities[orderNotifier.orderList[0]].toString()),
-            //     ),
-            // CartItem(
-            //       itemName:
-            //           orderNotifier.orderList[1]?.itemName.toString()??'',
-            //       price: int.parse(orderNotifier.orderList[1]?.price.toString()??'0'),
-            //       quantity: int.parse(orderNotifier.quantities[orderNotifier.orderList[1]].toString()),
-            //     ),
-            // const CartItem(),
-            // const CartItem(),
-            // const CartItem(),
             const SizedBox(
               height: 60,
             ),
@@ -152,12 +244,12 @@ class _CartScreenState extends State<CartScreen> {
                     children: [
                       const Text(
                         'Order:',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                         ),
                       ),
                       Text(
-                        '\u{20B9}${orderNotifier.totalBill}',
+                        '\u{20B9}${cartNotifier.bill}',
                         style: const TextStyle(
                           fontSize: 17,
                         ),
@@ -174,7 +266,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                       Text(
-                        '-\u{20B9}${0.15 * orderNotifier.totalBill}',
+                        '-\u{20B9}${cartNotifier.discount}',
                         style: const TextStyle(
                           color: Colors.orange,
                           fontSize: 17,
@@ -194,7 +286,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                       Text(
-                        '\u{20B9}${orderNotifier.totalBill - 0.15 * orderNotifier.totalBill}',
+                        '\u{20B9}${cartNotifier.totalBill}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
@@ -206,7 +298,18 @@ class _CartScreenState extends State<CartScreen> {
                     height: 30,
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // generateOrderId(
+                      //         'rzp_test_3CN6aDtmrAAsyR',
+                      //         'zADZBfnX3azVS8e2y3xFftKi',
+                      //         int.parse((cartNotifier.totalBill.floor() * 100)
+                      //             .toString()))
+                      //     .then((value) {
+                      //   openCheckout(cartNotifier, value);
+                      // });
+                      Navigator.pushNamed(context, '/upi');
+                      // Navigator.pop(context);
+                    },
                     child: const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Text(
@@ -252,6 +355,7 @@ class CartItem extends StatelessWidget {
           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
+              flex: 3,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
@@ -266,6 +370,7 @@ class CartItem extends StatelessWidget {
             //   width: 14,
             // ),
             Expanded(
+              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -280,25 +385,48 @@ class CartItem extends StatelessWidget {
             //   width: 60,
             // ),
             Expanded(
+              flex: 2,
               child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2),
                   child: Container(
-                    color: Colors.orange,
+                    // margin: EdgeInsets.symmetric(vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        IconButton(
-                          onPressed: onDecrement,
-                          icon: const Icon(Icons.remove),
+                        Expanded(
+                          child: IconButton(
+                            onPressed: onDecrement,
+                            icon: const Icon(
+                              Icons.remove,
+                              color: Colors.white,
+                              size: 15,
+                            ),
+                          ),
                         ),
-                        Text(quantity.toString()),
-                        IconButton(
-                          onPressed: onIncrement,
-                          icon: const Icon(Icons.add),
+                        Text(
+                          quantity.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        Expanded(
+                          child: IconButton(
+                            onPressed: onIncrement,
+                            icon: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 15,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  )),
+                  ),),
             ),
           ],
         ),

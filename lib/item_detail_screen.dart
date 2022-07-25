@@ -87,10 +87,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                             child: IconButton(
                                               onPressed: () {
                                                 foodItemNotifier.currentFoodItem =
-                                                    currentItem;
+                                                    cartNotifier.findFoodItem(currentItem,cartNotifier);
                                                 cartNotifier.decrementQuantity(
-                                                    foodItemNotifier
-                                                        .currentFoodItem);
+                                                    foodItemNotifier.currentFoodItem);
                                               },
                                               icon: const Icon(Icons.remove,
                                               color: Colors.white,),
@@ -104,10 +103,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                             child: IconButton(
                                               onPressed: () {
                                                 foodItemNotifier.currentFoodItem =
-                                                    currentItem;
+                                                    cartNotifier.findFoodItem(currentItem,cartNotifier);
                                                 cartNotifier.incrementQuantity(
-                                                    foodItemNotifier
-                                                        .currentFoodItem);
+                                                    foodItemNotifier.currentFoodItem);
                                               },
                                               icon: const Icon(Icons.add,
                                               color: Colors.white,),
@@ -137,10 +135,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                         ),
                                       ),
                                       onTap: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            currentItem;
-                                        cartNotifier.addItem(
-                                            foodItemNotifier.currentFoodItem);
+                                        cartNotifier.addItem(foodItemNotifier.currentFoodItem);
                                       },
                                     ),
                             ):Container(),

@@ -1,4 +1,4 @@
-import 'dart:ui';
+// import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:outline_gradient_button/outline_gradient_button.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_list_tabview/scrollable_list_tabview.dart';
+// import 'package:scrollable_list_tabview/scrollable_list_tabview.dart';
 import 'package:trilicious_menu/api/food_item_api.dart';
 import 'package:trilicious_menu/api/profile_api.dart';
 import 'package:trilicious_menu/item_detail_screen.dart';
@@ -29,14 +29,12 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   // Order? _currentOrder;
+
   @override
   void initState() {
     super.initState();
     FoodItemNotifier foodItemNotifier =
         Provider.of<FoodItemNotifier>(context, listen: false);
-    ProfileNotifier profileNotifier =
-        Provider.of<ProfileNotifier>(context, listen: false);
-    getProfile(profileNotifier);
     getCategories(foodItemNotifier).then((value) {
       getFoodItems(foodItemNotifier);
       foodItemNotifier.currentCategory = foodItemNotifier.categoryList[0];
@@ -46,14 +44,22 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
-    FoodItemNotifier foodItemNotifier =
-        Provider.of<FoodItemNotifier>(context, listen: false);
-    OrderNotifier orderNotifier =
-        Provider.of<OrderNotifier>(context, listen: false);
-    foodItemNotifier.allFoodItemList = Provider.of<List<FoodItem>>(context);
-    orderNotifier.allOrderList = Provider.of<List<Order>>(context);
-    print(foodItemNotifier.allFoodItemList);
     super.didChangeDependencies();
+//     FoodItemNotifier foodItemNotifier =
+//         Provider.of<FoodItemNotifier>(context, listen: false);
+    // OrderNotifier orderNotifier =
+    //     Provider.of<OrderNotifier>(context, listen: false);
+        // WidgetsBinding.instance.addPostFrameCallback((_) {
+          
+      // foodItemNotifier.allFoodItemList =
+      //     Provider.of<List<FoodItem>>(context,listen: false);
+    // });
+//     print(foodItemNotifier.allFoodItemList);
+//     Future.delayed(Duration.zero, () async {
+      
+// });
+
+    // print(foodItemNotifier.allFoodItemList);
   }
 
   List<String> orderTypes = ['Take-away', 'Dine-in'];
@@ -66,14 +72,14 @@ class _MenuScreenState extends State<MenuScreen> {
     FoodItemNotifier foodItemNotifier = Provider.of<FoodItemNotifier>(context);
     // OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
-    ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
+    // ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
 
-    Future<void> _refreshList() async {
-      getCategories(foodItemNotifier).then((value) {
-        getFoodItems(foodItemNotifier);
-        // foodItemNotifier.currentCategory=foodItemNotifier.categoryList[0];
-      });
-    }
+    // Future<void> _refreshList() async {
+    //   getCategories(foodItemNotifier).then((value) {
+    //     getFoodItems(foodItemNotifier);
+    //     // foodItemNotifier.currentCategory=foodItemNotifier.categoryList[0];
+    //   });
+    // }
 
     Size size = MediaQuery.of(context).size;
     return Scaffold(
@@ -118,7 +124,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       ? Stack(
                           children: [
                             AspectRatio(
-                              aspectRatio: 5 / 3,
+                              aspectRatio: 5 / 2,
                               child: Image.network(
                                 snapshot.data?['coverImage'] ??
                                     'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
@@ -126,7 +132,7 @@ class _MenuScreenState extends State<MenuScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(top: 80),
+                              padding: EdgeInsets.only(top: size.height*0.03),
                               child: Center(
                                 child: GlassCard(
                                   image: snapshot.data?['profileImage'],
@@ -183,57 +189,58 @@ class _MenuScreenState extends State<MenuScreen> {
                     .doc('category')
                     .snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  List<String> _categories =
+                  List<String> categories =
                       snapshot.data?['categories'].cast<String>();
                   return snapshot.hasData
-                      ? Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                gradient: const LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      Color(0xffffa800),
-                                      Color(0xffffc700),
-                                    ]),
-                              ),
-                              child: Row(
-                                children: [
-                                  // CategoryButton(category: 'all', onPressed: onPressed, isSelected: isSelected
-                                  Expanded(
-                                    child: ListView.builder(
-                                        itemCount: _categories.length,
-                                        // reverse: true,
-                                        scrollDirection: Axis.horizontal,
-                                        itemBuilder:
-                                            (BuildContext context, int index) {
-                                          return CategoryButton(
-                                            category: _categories[index],
-                                            onPressed: () {
-                                              foodItemNotifier.currentCategory =
-                                                  _categories[index];
-                                              foodItemNotifier.foodItemList =
-                                                  foodItemNotifier.foodItemMap[
-                                                          foodItemNotifier
-                                                              .currentCategory
-                                                              .toString()] ??
-                                                      [];
-                                              print(foodItemNotifier
-                                                  .foodItemList);
-                                            },
-                                            isSelected: foodItemNotifier
-                                                    .currentCategory ==
-                                                _categories[index],
-                                          );
-                                        }),
-                                  )
-                                ],
-                              ),
+                      ? ConstrainedBox(
+                        constraints: BoxConstraints.expand(width: double.infinity,height: size.height*0.07),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xffffa800),
+                                    Color(0xffffc700),
+                                  ]),
+                            ),
+                            child: Row(
+                              children: [
+                                // CategoryButton(category: 'all', onPressed: onPressed, isSelected: isSelected
+                                Expanded(
+                                  child: ListView.builder(
+                                      itemCount: categories.length,
+                                      // reverse: true,
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        return CategoryButton(
+                                          category: categories[index],
+                                          onPressed: () {
+                                            foodItemNotifier.currentCategory =
+                                                categories[index];
+                                            foodItemNotifier.foodItemList =
+                                                foodItemNotifier.foodItemMap[
+                                                        foodItemNotifier
+                                                            .currentCategory
+                                                            .toString()] ??
+                                                    [];
+                                            print(foodItemNotifier
+                                                .foodItemList);
+                                          },
+                                          isSelected: foodItemNotifier
+                                                  .currentCategory ==
+                                              categories[index],
+                                        );
+                                      }),
+                                )
+                              ],
                             ),
                           ),
-                        )
+                        ),
+                      )
                       : Container();
                 }),
             StreamBuilder<QuerySnapshot>(
@@ -272,30 +279,22 @@ class _MenuScreenState extends State<MenuScreen> {
                                               .quantity[foodItem.itemName] ??
                                           0,
                                       onTap: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            FoodItem.fromMap(
-                                                snapshot.data?.docs[index]);
+                                        foodItemNotifier.currentFoodItem =foodItem;
                                         cartNotifier.addItem(
                                             foodItemNotifier.currentFoodItem);
                                       },
                                       onDecrement: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            FoodItem.fromMap(
-                                                snapshot.data?.docs[index]);
+                                        foodItemNotifier.currentFoodItem =cartNotifier.findFoodItem(foodItem, cartNotifier);
                                         cartNotifier.decrementQuantity(
                                             foodItemNotifier.currentFoodItem);
                                       },
                                       onIncrement: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            FoodItem.fromMap(
-                                                snapshot.data?.docs[index]);
+                                        foodItemNotifier.currentFoodItem =cartNotifier.findFoodItem(foodItem, cartNotifier);
                                         cartNotifier.incrementQuantity(
                                             foodItemNotifier.currentFoodItem);
                                       },
                                       onCardPressed: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            FoodItem.fromMap(
-                                                snapshot.data?.docs[index]);
+                                        foodItemNotifier.currentFoodItem =foodItem;
                                         showCupertinoModalPopup(
                                             context: context,
                                             builder: (context) =>
@@ -308,9 +307,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                           foodItem.description.toString(),
                                       price: foodItem.price ?? 0,
                                       onCardPressed: () {
-                                        foodItemNotifier.currentFoodItem =
-                                            FoodItem.fromMap(
-                                                snapshot.data?.docs[index]);
+                                        foodItemNotifier.currentFoodItem =foodItem;
                                         showCupertinoModalPopup(
                                             context: context,
                                             builder: (context) =>
@@ -325,9 +322,9 @@ class _MenuScreenState extends State<MenuScreen> {
                             child: Text('No Items in this category'),
                           ));
                 }),
-            cartNotifier.itemList.isEmpty
-                ? Container()
-                : GestureDetector(
+          ]),
+          cartNotifier.itemList.isNotEmpty
+                ? GestureDetector(
                     onTap: () => Navigator.pushNamed(context, '/cart_screen'),
                     child: Align(
                       alignment: Alignment.bottomCenter,
@@ -362,8 +359,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         ),
                       ),
                     ),
-                  ),
-          ]),
+                  ):Container(),
         ]));
   }
 }
@@ -468,32 +464,31 @@ class CategoryButton extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: OutlinedButton(
         onPressed: onPressed,
-        child: Text(category),
         style: OutlinedButton.styleFrom(
-          // backgroundColor: Colors.white,
           primary: isSelected ? Colors.black : Colors.white,
           backgroundColor: isSelected ? Colors.white : Colors.transparent,
           side: const BorderSide(
             color: Colors.white,
           ),
         ),
+        child: Text(category),
       ),
     );
   }
 }
 
 class ItemCard extends StatelessWidget {
-  final String image;
+  final String? image;
   final String itemName;
   final String description;
   final int price;
   final int quantity;
   // final bool isAdded;
-  final void Function() onCardPressed;
-  final void Function() onTap;
+  final VoidCallback onCardPressed;
+  final VoidCallback onTap;
   // final foodItem? currentfoodItem;
-  final void Function() onIncrement;
-  final void Function() onDecrement;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
   const ItemCard({
     Key? key,
     required this.image,
@@ -527,7 +522,8 @@ class ItemCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    image ?? 'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
+                    image ??
+                        'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -562,6 +558,7 @@ class ItemCard extends StatelessWidget {
                         flex: 5,
                         child: Text(
                           description,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 16,
                           ),
@@ -577,8 +574,8 @@ class ItemCard extends StatelessWidget {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                         Color(0xffffc700),
-                                         Color(0xffff8a00),
+                                        Color(0xffffc700),
+                                        Color(0xffff8a00),
                                       ]),
                                 ),
                                 child: Row(
@@ -650,7 +647,7 @@ class ItemCard extends StatelessWidget {
 }
 
 class DisabledCard extends StatelessWidget {
-  final String image;
+  final String? image;
   final String itemName;
   final String description;
   final int price;
@@ -668,70 +665,74 @@ class DisabledCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return ColorFiltered(
-      colorFilter: const ColorFilter.mode(
-        Colors.grey,
-        BlendMode.saturation,
-      ),
-      child: GestureDetector(
-        onTap: onCardPressed,
-        child: Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            children: [
-              SizedBox(
-                height: size.height * 0.125,
-                width: double.infinity,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    image ?? 'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
-                    fit: BoxFit.cover,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        foregroundDecoration: BoxDecoration(
+          color:Colors.grey,
+          backgroundBlendMode:BlendMode.saturation,
+        ),
+        child: GestureDetector(
+          onTap: onCardPressed,
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: size.height * 0.125,
+                  width: double.infinity,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      image ??
+                          'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              ListTile(
-                title: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        itemName,
-                        style: const TextStyle(
-                          fontSize: 19,
-                        ),
-                      ),
-                      Text(
-                        '\u{20B9}$price',
-                        style: const TextStyle(
-                          fontSize: 19,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: Text(
-                          description,
+                ListTile(
+                  title: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          itemName,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 19,
                           ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '\u{20B9}$price',
+                          style: const TextStyle(
+                            fontSize: 19,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Text(
+                            description,
+                            style: const TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

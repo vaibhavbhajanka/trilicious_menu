@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:trilicious_menu/models/food_item.dart';
 
 class CartNotifier with ChangeNotifier {
-  List<String> _itemList = [];
+  List<FoodItem> _itemList = [];
   Map<String, int> _price = {};
   Map<String, int> _quantity = {};
   int _totalQuantity = 0;
@@ -11,7 +11,7 @@ class CartNotifier with ChangeNotifier {
   double _discount = 0;
   double _totalBill = 0;
 
-  UnmodifiableListView<String> get itemList => UnmodifiableListView(_itemList);
+  UnmodifiableListView<FoodItem> get itemList => UnmodifiableListView(_itemList);
   // Map<String,Map<String,int>> get itemList => _itemList;
   Map<String, int> get price => _price;
   Map<String, int> get quantity => _quantity;
@@ -20,7 +20,7 @@ class CartNotifier with ChangeNotifier {
   double get discount => _discount;
   double get totalBill => _totalBill;
 
-  set itemList(List<String> itemList) {
+  set itemList(List<FoodItem> itemList) {
     _itemList = itemList;
     notifyListeners();
   }
@@ -36,7 +36,7 @@ class CartNotifier with ChangeNotifier {
   }
 
   addItem(FoodItem foodItem) {
-    _itemList.add(foodItem.itemName.toString());
+    _itemList.add(foodItem);
     _quantity[foodItem.itemName.toString()] = 1;
     _price[foodItem.itemName.toString()] = foodItem.price ?? 0;
     _totalQuantity += 1;
@@ -59,7 +59,8 @@ class CartNotifier with ChangeNotifier {
           (_quantity[foodItem.itemName.toString()])! - 1;
       _totalQuantity -= 1;
       if (_quantity[foodItem.itemName.toString()] == 0) {
-        _itemList.remove(foodItem.itemName);
+        _itemList.remove(foodItem);
+        print(_itemList);
         _quantity.remove(foodItem.itemName);
         _price.remove(foodItem.itemName);
       }
@@ -73,6 +74,11 @@ class CartNotifier with ChangeNotifier {
     //   }
     //   updateBill(foodItem,false);
     // }
+  }
+
+  findFoodItem(FoodItem foodItem,CartNotifier cartNotifier) {
+    FoodItem food = cartNotifier.itemList.singleWhere((f) => f.itemName==foodItem.itemName);
+    return food;
   }
 
   emptyCart() {

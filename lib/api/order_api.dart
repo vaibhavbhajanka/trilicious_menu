@@ -146,7 +146,9 @@
 // }
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:trilicious_menu/models/order.dart';
 import 'package:trilicious_menu/notifiers/order_notifier.dart';
 
@@ -165,8 +167,9 @@ import 'package:trilicious_menu/notifiers/order_notifier.dart';
 //     orderUploaded(order);
 // }
 
-uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier) async {
+uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier,BuildContext context) async {
   // OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context,listen:false);
+  orderNotifier.allOrderList = Provider.of<List<Order>>(context,listen: false);
   print(orderNotifier.allOrderList);
   int orderId = orderNotifier.allOrderList.length+1;
   var orderDate = DateFormat('dd-M-y').format(DateTime.now());
@@ -187,8 +190,11 @@ uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier) asy
 }
 
 Stream<List<Order>> get allOrderList{
+  var orderDate = DateFormat('dd-M-y').format(DateTime.now());
     return FirebaseFirestore.instance
-        .collectionGroup('orders')
+        .collection('date')
+        .doc(orderDate)
+        .collection('orders')
         .snapshots()
         .map((QuerySnapshot snapshot) =>
             snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList());

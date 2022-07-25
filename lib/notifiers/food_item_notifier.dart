@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trilicious_menu/models/food_item.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -67,10 +67,6 @@ class FoodItemNotifier with ChangeNotifier {
     notifyListeners();
   }
 
-  findFoodItem(String foodItem, FoodItemNotifier foodItemNotifier) {
-    FoodItem food = foodItemNotifier.allFoodItemList.singleWhere((_foodItem) => _foodItem.itemName==foodItem);
-    return food;
-  }
   String? get currentCategory => _currentCategory;
 
   set categoryList(List<String> categoryList) {

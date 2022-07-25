@@ -3,10 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class GlassCard extends StatelessWidget {
-  String? image;
-  String restaurantName;
-  String restaurantAddress;
-  GlassCard(
+  final String? image;
+  final String restaurantName;
+  final String restaurantAddress;
+  const GlassCard(
       {Key? key,
       required this.image,
       required this.restaurantName,

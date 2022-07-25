@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:trilicious_menu/api/food_item_api.dart';
 import 'package:trilicious_menu/api/order_api.dart';
-import 'package:trilicious_menu/fmenu.dart';
+// import 'package:trilicious_menu/fmenu.dart';
 import 'package:trilicious_menu/login.dart';
 import 'package:trilicious_menu/models/food_item.dart';
 import 'package:trilicious_menu/models/order.dart';
@@ -13,8 +13,8 @@ import 'package:trilicious_menu/menu.dart';
 import 'package:trilicious_menu/cart.dart';
 import 'package:provider/provider.dart';
 import 'package:trilicious_menu/notifiers/profile_notifier.dart';
-import 'package:trilicious_menu/upi.dart';
-import 'package:trilicious_menu/upi2.dart';
+// import 'package:trilicious_menu/upi.dart';
+// import 'package:trilicious_menu/upi2.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,10 +62,10 @@ class MyApp extends StatelessWidget {
       initialRoute: '/menu_screen',
       routes: {
         '/menu_screen': (context) => const MenuScreen(),
-        '/fmenu':(ctx) => FMenu(),
+        // '/fmenu':(ctx) => FMenu(),
         '/cart_screen': (context) => const CartScreen(),
         '/login': (ctx) => const LoginScreen(),
-        '/upi':(ctx) => const UpiPayment(),
+        // '/upi':(ctx) => const UpiPayment(),
       },
     );
   }

@@ -7,13 +7,20 @@ import 'package:trilicious_menu/models/restaurant.dart';
 
 class ProfileNotifier with ChangeNotifier {
   Restaurant? _currentRestaurant;
+  String? _currentId;
 
   Restaurant? get currentRestaurant => _currentRestaurant;
+  String? get currentId => _currentId;
   // File? get coverImageFile => _coverImageFile;
   // File? get profileImageFile => _profileImageFile; 
 
   set currentRestaurant(Restaurant? restaurant) {
     _currentRestaurant = restaurant;
+    notifyListeners();
+  }
+
+  set currentId(String? id) {
+    _currentId = id;
     notifyListeners();
   }
 

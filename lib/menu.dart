@@ -35,9 +35,10 @@ class _MenuScreenState extends State<MenuScreen> {
     super.initState();
     FoodItemNotifier foodItemNotifier =
         Provider.of<FoodItemNotifier>(context, listen: false);
-    getCategories(foodItemNotifier).then((value) {
-      getFoodItems(foodItemNotifier);
-      foodItemNotifier.currentCategory = foodItemNotifier.categoryList[0];
+    ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context,listen:false);
+    getCategories(foodItemNotifier,profileNotifier).then((value) {
+      // getFoodItems(foodItemNotifier);
+      // foodItemNotifier.currentCategory = foodItemNotifier.categoryList[0];
     });
   }
 
@@ -70,6 +71,7 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     FoodItemNotifier foodItemNotifier = Provider.of<FoodItemNotifier>(context);
+    ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
     // OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     // ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
@@ -86,6 +88,8 @@ class _MenuScreenState extends State<MenuScreen> {
         // extendBody: true,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
+          centerTitle: true,
+          automaticallyImplyLeading: false,
           title: const Padding(
             padding: EdgeInsets.zero,
             child: Center(
@@ -117,14 +121,14 @@ class _MenuScreenState extends State<MenuScreen> {
             StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection("restaurants")
-                    .doc('abc@gmail.com')
+                    .doc(profileNotifier.currentId)
                     .snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                   return snapshot.hasData
                       ? Stack(
                           children: [
                             AspectRatio(
-                              aspectRatio: 5 / 2,
+                              aspectRatio: 5 / 2.5,
                               child: Image.network(
                                 snapshot.data?['coverImage'] ??
                                     'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
@@ -132,7 +136,7 @@ class _MenuScreenState extends State<MenuScreen> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: size.height*0.03),
+                              padding: EdgeInsets.only(top: size.height*0.08),
                               child: Center(
                                 child: GlassCard(
                                   image: snapshot.data?['profileImage'],
@@ -173,7 +177,7 @@ class _MenuScreenState extends State<MenuScreen> {
             //         (item) => DropdownMenuItem<String>(
             //           value: item,
             //           child: Text(item),
-            //         ),
+            //         ), 
             //       )
             //       .toList(),
             //   onChanged: (item) =>
@@ -186,6 +190,8 @@ class _MenuScreenState extends State<MenuScreen> {
             StreamBuilder(
                 stream: FirebaseFirestore.instance
                     .collection('menu')
+                    .doc(profileNotifier.currentId)
+                    .collection('categories')
                     .doc('category')
                     .snapshots(),
                 builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -246,6 +252,8 @@ class _MenuScreenState extends State<MenuScreen> {
             StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('menu')
+                    .doc(profileNotifier.currentId)
+                    .collection('categories')
                     .doc(foodItemNotifier.currentCategory)
                     .collection('menuItems')
                     .snapshots(),

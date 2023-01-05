@@ -151,6 +151,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trilicious_menu/models/order.dart';
 import 'package:trilicious_menu/notifiers/order_notifier.dart';
+import 'package:trilicious_menu/notifiers/profile_notifier.dart';
 
 // _uploadOrder(Order order, Function orderUploaded) async {
 //   CollectionReference orderRef = FirebaseFirestore.instance.collection('orders');
@@ -167,14 +168,15 @@ import 'package:trilicious_menu/notifiers/order_notifier.dart';
 //     orderUploaded(order);
 // }
 
-uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier,BuildContext context) async {
+uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier,ProfileNotifier profileNotifier,BuildContext context) async {
   // OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context,listen:false);
-  orderNotifier.allOrderList = Provider.of<List<Order>>(context,listen: false);
-  print(orderNotifier.allOrderList);
-  int orderId = orderNotifier.allOrderList.length+1;
+  // orderNotifier.allOrderList = Provider.of<List<Order>>(context,listen: false);
+  // print(orderNotifier.allOrderList);
+  final orderId = await countOrders(profileNotifier);
+  print(orderId);
   var orderDate = DateFormat('dd-M-y').format(DateTime.now());
   CollectionReference orderRef =
-      FirebaseFirestore.instance.collection('date').doc(orderDate).collection('orders');
+      FirebaseFirestore.instance.collection('order').doc(profileNotifier.currentId).collection('date').doc(orderDate).collection('orders');
   order.orderedAt = Timestamp.now();
 
   // DocumentReference documentRef = await orderRef.add(order.toMap());
@@ -183,21 +185,23 @@ uploadOrder(Order order,Function orderUploaded, OrderNotifier orderNotifier,Buil
   await orderRef.doc(orderId.toString()).set(order.toMap());
 
   print('uploaded order successfully: ${order.toString()}');
-
-  
-
   orderUploaded(order);
 }
 
-Stream<List<Order>> get allOrderList{
+Future<int> countOrders(ProfileNotifier profileNotifier)async{
+  // ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context,);
   var orderDate = DateFormat('dd-M-y').format(DateTime.now());
-    return FirebaseFirestore.instance
+    QuerySnapshot snap =  await FirebaseFirestore.instance
+        .collection('order')
+        .doc(profileNotifier.currentId)
         .collection('date')
         .doc(orderDate)
         .collection('orders')
-        .snapshots()
-        .map((QuerySnapshot snapshot) =>
-            snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList());
+        .get();
+        return snap.size+1;
+        // .snapshots()
+        // .map((QuerySnapshot snapshot) =>
+        //     snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList());
   }
 
 // deleteorder(order order, Function orderDeleted) async {

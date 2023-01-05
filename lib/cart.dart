@@ -1,3 +1,5 @@
+// import 'dart:html';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +13,7 @@ import 'package:trilicious_menu/notifiers/food_item_notifier.dart';
 // import 'package:trilicious_food/notifiers/order_notifier.dart';
 // import 'package:trilicious_menu/api/order_api.dart';
 import 'package:trilicious_menu/notifiers/order_notifier.dart';
+import 'package:trilicious_menu/notifiers/profile_notifier.dart';
 // import 'package:trilicious_menu/payment.dart';
 import 'package:trilicious_menu/widgets/glass_card.dart';
 
@@ -89,7 +92,8 @@ class _CartScreenState extends State<CartScreen> {
     FoodItemNotifier foodItemNotifier = Provider.of<FoodItemNotifier>(context);
     OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
-
+    ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
+    
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -135,7 +139,7 @@ class _CartScreenState extends State<CartScreen> {
                       ? Stack(
                           children: [
                             AspectRatio(
-                              aspectRatio: 5 / 2,
+                              aspectRatio: 5 / 2.5,
                               child: Image.network(
                                 snapshot.data?['coverImage'] ??
                                     'https://www.testingxperts.com/wp-content/uploads/2019/02/placeholder-img.jpg',
@@ -143,7 +147,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: size.height*0.03),
+                              padding: EdgeInsets.only(top: size.height*0.08),
                               child: Center(
                                 child: GlassCard(
                                   image: snapshot.data?['profileImage'],
@@ -206,6 +210,9 @@ class _CartScreenState extends State<CartScreen> {
                     cartNotifier
                         .decrementQuantity(foodItemNotifier.currentFoodItem);
                     // });
+                    if(cartNotifier.itemList.length==0){
+                      Navigator.pop(context);
+                    }
                   },
                   onIncrement: () {
                     foodItemNotifier.currentFoodItem = foodItem;
@@ -311,7 +318,7 @@ class _CartScreenState extends State<CartScreen> {
                             cartNotifier.totalQuantity;
                         // print(_currentOrder);
                         uploadOrder(_currentOrder, _onOrderUploaded,
-                            orderNotifier, context);
+                            orderNotifier,profileNotifier, context);
                         // generateOrderId(
                         //         'rzp_test_3CN6aDtmrAAsyR',
                         //         'zADZBfnX3azVS8e2y3xFftKi',
@@ -343,6 +350,20 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
   }
+
+// Stream<List<Order>> get allOrderList{
+//   // ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context,);
+//   var orderDate = DateFormat('dd-M-y').format(DateTime.now());
+//     return FirebaseFirestore.instance
+//         .collection('order')
+//         .doc(profileNotifier.currentId)
+//         .collection('date')
+//         .doc(orderDate)
+//         .collection('orders')
+//         .snapshots()
+//         .map((QuerySnapshot snapshot) =>
+//             snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList());
+//   }
 }
 
 class CartItem extends StatelessWidget {

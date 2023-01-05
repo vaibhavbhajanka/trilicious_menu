@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter/cupertino.dart';
 import 'package:trilicious_menu/models/food_item.dart';
 import 'package:trilicious_menu/notifiers/food_item_notifier.dart';
+import 'package:trilicious_menu/notifiers/profile_notifier.dart';
 
 // login(User user, AuthNotifier authNotifier) async {
 //   AuthResult authResult = await FirebaseAuth.instance
@@ -104,18 +105,20 @@ import 'package:trilicious_menu/notifiers/food_item_notifier.dart';
 //         .where('users', arrayContains: itIsMyName)
 //         .snapshots();
 //   }
-getCategories(FoodItemNotifier foodItemNotifier) async {
+getCategories(FoodItemNotifier foodItemNotifier,ProfileNotifier profileNotifier) async {
   // User? user = FirebaseAuth.instance.currentUser;
   DocumentSnapshot snapshot =
-      await FirebaseFirestore.instance.collection('menu').doc('category').get();
+      await FirebaseFirestore.instance.collection('menu').doc(profileNotifier.currentId).collection('categories').doc('category').get();
   print(snapshot.data());
   if (snapshot.exists) {
     List<String> categories;
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     categories = data['categories'].cast<String>();
     foodItemNotifier.categoryList = categories;
+    foodItemNotifier.currentCategory = categories.isNotEmpty? categories[0]:"";
   }
   print(foodItemNotifier.categoryList);
+  print(foodItemNotifier.currentCategory);
 }
 
 getFoodItems(FoodItemNotifier foodItemNotifier) async {

@@ -13,6 +13,7 @@ import 'package:trilicious_menu/menu.dart';
 import 'package:trilicious_menu/cart.dart';
 import 'package:provider/provider.dart';
 import 'package:trilicious_menu/notifiers/profile_notifier.dart';
+import 'package:trilicious_menu/restaurants.dart';
 // import 'package:trilicious_menu/upi.dart';
 // import 'package:trilicious_menu/upi2.dart';
 
@@ -32,7 +33,7 @@ Future<void> main() async {
           create: (context) => ProfileNotifier(),
         ),
         StreamProvider<List<FoodItem>>.value(value: allFoodItems, initialData: const [],),
-        StreamProvider<List<Order>>.value(value: allOrderList, initialData: const [],),
+        // StreamProvider<List<Order>>.value(value: allOrderList, initialData: const [],),
         // StreamProvider(create: create, initialData: initialData),
         ChangeNotifierProvider(
           create: (context) => FoodItemNotifier(),
@@ -59,12 +60,13 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.orange,
         fontFamily: 'Montserrat',
       ),
-      initialRoute: '/menu_screen',
+      initialRoute: '/restaurants',
       routes: {
         '/menu_screen': (context) => const MenuScreen(),
         // '/fmenu':(ctx) => FMenu(),
         '/cart_screen': (context) => const CartScreen(),
         '/login': (ctx) => const LoginScreen(),
+        '/restaurants':(ctx) => const RestaurantScreen(),
         // '/upi':(ctx) => const UpiPayment(),
       },
     );

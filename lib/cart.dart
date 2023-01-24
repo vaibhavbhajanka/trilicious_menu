@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:trilicious_menu/api/order_api.dart';
 import 'package:trilicious_menu/models/food_item.dart';
 // import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -25,41 +26,41 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  // late Razorpay _razorpay;
+  late Razorpay _razorpay;
   @override
   void initState() {
     super.initState();
-    // _razorpay = Razorpay();
-    // _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    // _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleErrorFailure);
-    // _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleErrorFailure);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  // @override
-  // void dispose() {
-  //   // TODO: implement dispose
-  //   super.dispose();
-  //   _razorpay.clear();
-  // }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _razorpay.clear();
+  }
 
-  // void openCheckout(CartNotifier cartNotifier, String OrderId) {
-  //   var options = {
-  //     'key': 'rzp_test_3CN6aDtmrAAsyR',
-  //     'amount': (cartNotifier.totalBill * 100)
-  //         .toString(), //in the smallest currency sub-unit.
-  //     'name': 'Pizza Central',
-  //     'order_id': OrderId,
-  //     // 'order_id': 'order_EMBFqjDHEEn80l', // Generate order_id using Orders API
-  //     'description': 'Demo',
-  //     'timeout': 300, // in seconds
-  //     'prefill': {'contact': '9365097092', 'email': 'vaibhavbhajanka@gmail.com'}
-  //   };
-  //   try {
-  //     _razorpay.open(options);
-  //   } catch (e) {
-  //     print(e.toString());
-  //   }
-  // }
+  Future<void> openCheckout(CartNotifier cartNotifier, String OrderId) async {
+    var options = {
+      'key': 'rzp_test_3CN6aDtmrAAsyR',
+      'amount': (cartNotifier.totalBill * 100)
+          .toString(), //in the smallest currency sub-unit.
+      'name': 'Pizza Central',
+      'order_id': OrderId,
+      // 'order_id': 'order_EMBFqjDHEEn80l', // Generate order_id using Orders API
+      'description': 'Demo',
+      'timeout': 300, // in seconds
+      'prefill': {'contact': '9365097092', 'email': 'vaibhavbhajanka@gmail.com'}
+    };
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      print(e.toString());
+    }
+  }
 
   _onOrderUploaded(Order order) {
     OrderNotifier orderNotifier =
@@ -72,20 +73,25 @@ class _CartScreenState extends State<CartScreen> {
     // }
     cartNotifier.emptyCart();
     Navigator.pop(context);
+    final snackBar = const SnackBar(
+      content: Text('Order Placed'),
+      backgroundColor: Colors.green,
+      duration: Duration(seconds: 1),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  // void _handlePaymentSuccess(PaymentSuccessResponse response) {
-  //   print('Success Response: $response');
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    print('Success Response: $response');
+  }
 
-  // }
+  void _handleErrorFailure(PaymentFailureResponse response) {
+    print('Error Response: $response');
+  }
 
-  // void _handleErrorFailure(PaymentFailureResponse response) {
-  //   print('Error Response: $response');
-  // }
-
-  // void _handleExternalWallet(ExternalWalletResponse response) {
-  //   print('External SDK Response: $response');
-  // }
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print('External SDK Response: $response');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,15 +99,17 @@ class _CartScreenState extends State<CartScreen> {
     OrderNotifier orderNotifier = Provider.of<OrderNotifier>(context);
     CartNotifier cartNotifier = Provider.of<CartNotifier>(context);
     ProfileNotifier profileNotifier = Provider.of<ProfileNotifier>(context);
-    
+
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-          color: Colors.white,),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -147,7 +155,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: size.height*0.08),
+                              padding: EdgeInsets.only(top: size.height * 0.08),
                               child: Center(
                                 child: GlassCard(
                                   image: snapshot.data?['profileImage'],
@@ -210,7 +218,7 @@ class _CartScreenState extends State<CartScreen> {
                     cartNotifier
                         .decrementQuantity(foodItemNotifier.currentFoodItem);
                     // });
-                    if(cartNotifier.itemList.length==0){
+                    if (cartNotifier.itemList.length == 0) {
                       Navigator.pop(context);
                     }
                   },
@@ -317,15 +325,16 @@ class _CartScreenState extends State<CartScreen> {
                         _currentOrder.totalQuantity =
                             cartNotifier.totalQuantity;
                         // print(_currentOrder);
-                        uploadOrder(_currentOrder, _onOrderUploaded,
-                            orderNotifier,profileNotifier, context);
                         // generateOrderId(
                         //         'rzp_test_3CN6aDtmrAAsyR',
                         //         'zADZBfnX3azVS8e2y3xFftKi',
                         //         int.parse((cartNotifier.totalBill.floor() * 100)
                         //             .toString()))
                         //     .then((value) {
-                        //   openCheckout(cartNotifier, value);
+                        // openCheckout(cartNotifier, "#123").whenComplete((){
+                        uploadOrder(_currentOrder, _onOrderUploaded,
+                            orderNotifier, profileNotifier, context);
+                        // });
                         // });
                         // Navigator.pushNamed(context, '/upi');
                         // Navigator.pop(context);
